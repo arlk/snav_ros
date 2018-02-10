@@ -29,7 +29,7 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * In addition Supplemental Terms apply.  See the SUPPLEMENTAL file.  
+ * In addition Supplemental Terms apply.  See the SUPPLEMENTAL file.
  ****************************************************************************/
 #include "snav_interface/snav_interface.hpp"
 
@@ -41,6 +41,7 @@ SnavInterface::SnavInterface(ros::NodeHandle nh, ros::NodeHandle pnh) : nh_(nh),
   sn_update_data();
   last_sn_update_ = ros::Time::now();
   last_vel_command_time_ = ros::Time(0);
+  last_traj_command_time_ = ros::Time(0);
 
   // Setup the publishers
   pose_est_publisher_ = nh_.advertise<geometry_msgs::PoseStamped>("pose", 10);
@@ -48,8 +49,10 @@ SnavInterface::SnavInterface(ros::NodeHandle nh, ros::NodeHandle pnh) : nh_(nh),
   pose_sim_gt_publisher_ = nh_.advertise<geometry_msgs::PoseStamped>("pose_sim_gt", 10);
   battery_voltage_publisher_ = nh_.advertise<std_msgs::Float32>("battery_voltage", 10);
   on_ground_publisher_ = nh_.advertise<std_msgs::Bool>("on_ground", 10);
+  props_state_publisher_ = nh_.advertise<std_msgs::Bool>("props_state", 10);
 
   cmd_vel_subscriber_ = nh_.subscribe("cmd_vel", 10, &SnavInterface::CmdVelCallback, this);
+  traj_cmd_subscriber_ = nh_.subscribe("traj_cmd", 10, &SnavInterface::TrajCmdCallback, this);
   start_props_subscriber_ = nh_.subscribe("start_props", 10, &SnavInterface::StartPropsCallback, this);
   stop_props_subscriber_ = nh_.subscribe("stop_props", 10, &SnavInterface::StopPropsCallback, this);
 
@@ -61,16 +64,16 @@ SnavInterface::SnavInterface(ros::NodeHandle nh, ros::NodeHandle pnh) : nh_(nh),
   pnh_.param("desired_frame",desired_frame_,std::string("/desired"));
   pnh_.param("sim_gt_frame", sim_gt_frame_, std::string("/sim/ground_truth"));
 
-  pnh_.param("simulation", simulation_, false);  
+  pnh_.param("simulation", simulation_, false);
 
   std::string rc_cmd_type_string;
   std::string rc_cmd_mapping_string;
-  
+
   pnh_.param("sn_rc_cmd_type", rc_cmd_type_string, std::string("SN_RC_POS_HOLD_CMD"));
   pnh_.param("sn_rc_mapping_type", rc_cmd_mapping_string, std::string("RC_OPT_LINEAR_MAPPING"));
 
   SetRcCommandType(rc_cmd_type_string);
-  SetRcMappingType(rc_cmd_mapping_string);  
+  SetRcMappingType(rc_cmd_mapping_string);
 
   if(!simulation_)
     GetDSPTimeOffset();
@@ -115,7 +118,7 @@ void SnavInterface::SetRcMappingType(std::string rc_cmd_mapping_string)
   {
     rc_cmd_mapping_ = RC_OPT_LINEAR_MAPPING;
     ROS_INFO("unrecognized sn_rc_mapping_type, using default cmd_vel SNAV mapping : RC_OPT_LINEAR_MAPPING");
-  }  
+  }
 }
 
 
@@ -127,12 +130,12 @@ void SnavInterface::SetRcCommandType(std::string rc_cmd_type_string)
     ROS_INFO("cmd_vel SNAV cmd type: SN_RC_RATES_CMD");
   }
   else if(rc_cmd_type_string == "SN_RC_THRUST_ANGLE_CMD")
-  {    
+  {
     rc_cmd_type_ = SN_RC_THRUST_ANGLE_CMD;
     ROS_INFO("cmd_vel SNAV cmd type: SN_RC_THRUST_ANGLE_CMD");
-  }  
+  }
   else if(rc_cmd_type_string == "SN_RC_ALT_HOLD_CMD")
-  {    
+  {
     rc_cmd_type_ = SN_RC_ALT_HOLD_CMD;
     ROS_INFO("cmd_vel SNAV cmd type: SN_RC_ALT_HOLD_CMD");
   }
@@ -145,23 +148,23 @@ void SnavInterface::SetRcCommandType(std::string rc_cmd_type_string)
   {
     rc_cmd_type_ = SN_RC_GPS_POS_HOLD_CMD;
     ROS_INFO("cmd_vel SNAV cmd type: SN_RC_GPS_POS_HOLD_CMD");
-  }    
+  }
   else if(rc_cmd_type_string == "SN_RC_OPTIC_FLOW_POS_HOLD_CMD")
   {
     rc_cmd_type_ = SN_RC_OPTIC_FLOW_POS_HOLD_CMD;
     ROS_INFO("cmd_vel SNAV cmd type: SN_RC_OPTIC_FLOW_POS_HOLD_CMD");
-  }    
+  }
   else if(rc_cmd_type_string == "SN_RC_VIO_POS_HOLD_CMD")
   {
     rc_cmd_type_ = SN_RC_VIO_POS_HOLD_CMD;
     ROS_INFO("cmd_vel SNAV cmd type: SN_RC_VIO_POS_HOLD_CMD");
-  }    
+  }
   else if(rc_cmd_type_string == "SN_RC_ALT_HOLD_LOW_ANGLE_CMD")
   {
     rc_cmd_type_ = SN_RC_ALT_HOLD_LOW_ANGLE_CMD;
     ROS_INFO("cmd_vel SNAV cmd type: SN_RC_ALT_HOLD_LOW_ANGLE_CMD");
-  }    
-  else if(rc_cmd_type_string == "SN_RC_POS_HOLD_CMD")    
+  }
+  else if(rc_cmd_type_string == "SN_RC_POS_HOLD_CMD")
   {
     rc_cmd_type_ = SN_RC_POS_HOLD_CMD;
     ROS_INFO("cmd_vel SNAV cmd type: SN_RC_POS_HOLD_CMD");
@@ -169,8 +172,8 @@ void SnavInterface::SetRcCommandType(std::string rc_cmd_type_string)
   else
   {
     // Default is position hold mode command
-    ROS_INFO("Unrecognized sn_rc_cmd_type, using default cmd_vel SNAV cmd type: SN_RC_POS_HOLD_CMD");    
-    rc_cmd_type_ = SN_RC_POS_HOLD_CMD; 
+    ROS_INFO("Unrecognized sn_rc_cmd_type, using default cmd_vel SNAV cmd type: SN_RC_POS_HOLD_CMD");
+    rc_cmd_type_ = SN_RC_POS_HOLD_CMD;
   }
 }
 
@@ -215,6 +218,7 @@ void SnavInterface::PublishLowFrequencyData(const ros::TimerEvent& event)
   {
     PublishBatteryVoltage();
     PublishOnGroundFlag();
+    PublishPropsStateFlag();
   }
   else
   {
@@ -227,6 +231,12 @@ void SnavInterface::CmdVelCallback(const geometry_msgs::Twist::ConstPtr& msg)
   commanded_vel_ = *msg;
   last_vel_command_time_ = ros::Time::now();
   SendVelocityCommand();
+}
+
+void SnavInterface::TrajCmdCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
+{
+  last_traj_command_time_ = ros::Time::now();
+  sn_send_trajectory_tracking_command(SN_POSITION_CONTROL_VIO, SN_TRAJ_DEFAULT, msg->data[0], msg->data[1], msg->data[2], msg->data[3], msg->data[4], msg->data[5], msg->data[6], msg->data[7], msg->data[8], msg->data[9], msg->data[10]);
 }
 
 void SnavInterface::StartPropsCallback(const std_msgs::Empty::ConstPtr& msg)
@@ -463,6 +473,20 @@ void SnavInterface::PublishOnGroundFlag(){
   std_msgs::Bool on_ground_msg;
   on_ground_msg.data = cached_data_->general_status.on_ground;
   on_ground_publisher_.publish( on_ground_msg );
+}
+
+void SnavInterface::PublishPropsStateFlag(){
+  std_msgs::Bool props_state_msg;
+  SnPropsState props_state = (SnPropsState) cached_data_->general_status.props_state;
+  if (props_state == SN_PROPS_STATE_SPINNING)
+  {
+    props_state_msg.data = true;
+  }
+  else
+  {
+    props_state_msg.data = false;
+  }
+  props_state_publisher_.publish( props_state_msg );
 }
 
 void SnavInterface::BroadcastEstTf(){

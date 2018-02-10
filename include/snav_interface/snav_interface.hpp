@@ -29,7 +29,7 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * In addition Supplemental Terms apply.  See the SUPPLEMENTAL file. 
+ * In addition Supplemental Terms apply.  See the SUPPLEMENTAL file.
  ****************************************************************************/
 #ifndef _SNAV_INTERFACE_H_
 #define _SNAV_INTERFACE_H_
@@ -44,6 +44,9 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/MultiArrayDimension.h>
+#include <std_msgs/MultiArrayLayout.h>
+#include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Bool.h>
 #include <rosgraph_msgs/Clock.h>
 #include <std_msgs/Empty.h>
@@ -134,6 +137,8 @@ public:
    */
   void CmdVelCallback(const geometry_msgs::Twist::ConstPtr& msg);
 
+  void TrajCmdCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
+
   /**
    * Callback function to start propellers via ros message
    * @param msg
@@ -155,21 +160,24 @@ private:
 
   void PublishBatteryVoltage();
   void PublishOnGroundFlag();
+  void PublishPropsStateFlag();
 
   void SendVelocityCommand();
   void GetDSPTimeOffset();
 
   void SetRcCommandType(std::string rc_cmd_type_string);
   void SetRcMappingType(std::string rc_cmd_mapping_string);
-  
+
   ros::Publisher battery_voltage_publisher_;
   ros::Publisher pose_est_publisher_;
   ros::Publisher pose_des_publisher_;
   ros::Publisher pose_sim_gt_publisher_;
   ros::Publisher on_ground_publisher_;
+  ros::Publisher props_state_publisher_;
   ros::Publisher clock_publisher_;
 
   ros::Subscriber cmd_vel_subscriber_;
+  ros::Subscriber traj_cmd_subscriber_;
   ros::Subscriber start_props_subscriber_;
   ros::Subscriber stop_props_subscriber_;
 
@@ -199,6 +207,7 @@ private:
 
   ros::Time last_sn_update_;
   ros::Time last_vel_command_time_;
+  ros::Time last_traj_command_time_;
 
   int64_t dsp_offset_in_ns_;
 
