@@ -31,20 +31,22 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * In addition Supplemental Terms apply.  See the SUPPLEMENTAL file. 
+ * In addition Supplemental Terms apply.  See the SUPPLEMENTAL file.
  ****************************************************************************/
 -->
 <launch>
   <node pkg="snav_ros" name="snav_interface_node" type="snav_interface_node" output="screen">
-    <param name="loop_frequency" value="100.0"/>
+    <param name="loop_frequency" value="500.0"/>
     <param name="low_freq_data_rate" value="5.0"/>
 
     <param name="base_link_frame" value="/base_link"/>
 
     <param name="broadcast_tf" value="true"/>
-    <param name="broadcast_des_tf" value="true"/>
+    <param name="broadcast_des_tf" value="false"/>
+    <param name="broadcast_gps_tf" value="false"/>
     <param name="publish_pose" value="true"/>
     <param name="publish_des_pose" value="false"/>
+    <param name="publish_sim_data" value="false"/>
   </node>
 </launch>
 
