@@ -40,7 +40,7 @@ SnavInterface::SnavInterface(ros::NodeHandle nh, ros::NodeHandle pnh) : nh_(nh),
   };
   sn_update_data();
   last_sn_update_ = ros::Time::now();
-  last_vel_command_time_ = ros::Time(0);
+  last_gen_command_time_ = ros::Time(0);
   last_traj_command_time_ = ros::Time(0);
 
   // Setup the publishers
@@ -53,7 +53,7 @@ SnavInterface::SnavInterface(ros::NodeHandle nh, ros::NodeHandle pnh) : nh_(nh),
 
   cmd_type_subscriber_ = nh_.subscribe("cmd_type", 10, &SnavInterface::CmdTypeCallback, this);
   mapping_type_subscriber_ = nh_.subscribe("mapping_type", 10, &SnavInterface::MappingTypeCallback, this);
-  cmd_vel_subscriber_ = nh_.subscribe("cmd_vel", 10, &SnavInterface::CmdVelCallback, this);
+  gen_cmd_subscriber_ = nh_.subscribe("gen_cmd", 10, &SnavInterface::GenCmdCallback, this);
   traj_cmd_subscriber_ = nh_.subscribe("traj_cmd", 10, &SnavInterface::TrajCmdCallback, this);
   start_props_subscriber_ = nh_.subscribe("start_props", 10, &SnavInterface::StartPropsCallback, this);
   stop_props_subscriber_ = nh_.subscribe("stop_props", 10, &SnavInterface::StopPropsCallback, this);
@@ -94,32 +94,32 @@ void SnavInterface::SetRcMappingType(std::string rc_cmd_mapping_string)
   if(rc_cmd_mapping_string == "RC_OPT_LINEAR_MAPPING")
   {
     rc_cmd_mapping_ = RC_OPT_LINEAR_MAPPING;
-    ROS_INFO("cmd_vel SNAV mapping : RC_OPT_LINEAR_MAPPING");
+    ROS_INFO("SNAV mapping : RC_OPT_LINEAR_MAPPING");
   }
   else if(rc_cmd_mapping_string == "RC_OPT_ENABLE_DEADBAND")
   {
     rc_cmd_mapping_ = RC_OPT_ENABLE_DEADBAND;
-    ROS_INFO("cmd_vel SNAV mapping : RC_OPT_ENABLE_DEADBAND");
+    ROS_INFO("SNAV mapping : RC_OPT_ENABLE_DEADBAND");
   }
   else  if(rc_cmd_mapping_string == "RC_OPT_COMPLIANT_TRACKING")
   {
     rc_cmd_mapping_ = RC_OPT_COMPLIANT_TRACKING;
-    ROS_INFO("cmd_vel SNAV mapping : RC_OPT_COMPLIANT_TRACKING");
+    ROS_INFO("SNAV mapping : RC_OPT_COMPLIANT_TRACKING");
   }
   else  if(rc_cmd_mapping_string == "RC_OPT_DEFAULT_RC")
   {
     rc_cmd_mapping_ = RC_OPT_DEFAULT_RC;
-    ROS_INFO("cmd_vel SNAV mapping : RC_OPT_DEFAULT_RC");
+    ROS_INFO("SNAV mapping : RC_OPT_DEFAULT_RC");
   }
   else  if(rc_cmd_mapping_string == "RC_OPT_TRIGGER_LANDING")
   {
     rc_cmd_mapping_ = RC_OPT_TRIGGER_LANDING;
-    ROS_INFO("cmd_vel SNAV mapping : RC_OPT_TRIGGER_LANDING");
+    ROS_INFO("SNAV mapping : RC_OPT_TRIGGER_LANDING");
   }
   else
   {
     rc_cmd_mapping_ = RC_OPT_LINEAR_MAPPING;
-    ROS_INFO("unrecognized sn_rc_mapping_type, using default cmd_vel SNAV mapping : RC_OPT_LINEAR_MAPPING");
+    ROS_INFO("unrecognized sn_rc_mapping_type, using default SNAV mapping : RC_OPT_LINEAR_MAPPING");
   }
 }
 
@@ -129,52 +129,52 @@ void SnavInterface::SetRcCommandType(std::string rc_cmd_type_string)
   if(rc_cmd_type_string == "SN_RC_RATES_CMD")
   {
     rc_cmd_type_ = SN_RC_RATES_CMD;
-    ROS_INFO("cmd_vel SNAV cmd type: SN_RC_RATES_CMD");
+    ROS_INFO("SNAV cmd type: SN_RC_RATES_CMD");
   }
   else if(rc_cmd_type_string == "SN_RC_THRUST_ANGLE_CMD")
   {
     rc_cmd_type_ = SN_RC_THRUST_ANGLE_CMD;
-    ROS_INFO("cmd_vel SNAV cmd type: SN_RC_THRUST_ANGLE_CMD");
+    ROS_INFO("SNAV cmd type: SN_RC_THRUST_ANGLE_CMD");
   }
   else if(rc_cmd_type_string == "SN_RC_ALT_HOLD_CMD")
   {
     rc_cmd_type_ = SN_RC_ALT_HOLD_CMD;
-    ROS_INFO("cmd_vel SNAV cmd type: SN_RC_ALT_HOLD_CMD");
+    ROS_INFO("SNAV cmd type: SN_RC_ALT_HOLD_CMD");
   }
   else if(rc_cmd_type_string == "SN_RC_THRUST_ANGLE_GPS_HOVER_CMD")
   {
     rc_cmd_type_ = SN_RC_THRUST_ANGLE_GPS_HOVER_CMD;
-    ROS_INFO("cmd_vel SNAV cmd type: SN_RC_THRUST_ANGLE_GPS_HOVER_CMD");
+    ROS_INFO("SNAV cmd type: SN_RC_THRUST_ANGLE_GPS_HOVER_CMD");
   }
   else if(rc_cmd_type_string == "SN_RC_GPS_POS_HOLD_CMD")
   {
     rc_cmd_type_ = SN_RC_GPS_POS_HOLD_CMD;
-    ROS_INFO("cmd_vel SNAV cmd type: SN_RC_GPS_POS_HOLD_CMD");
+    ROS_INFO("SNAV cmd type: SN_RC_GPS_POS_HOLD_CMD");
   }
   else if(rc_cmd_type_string == "SN_RC_OPTIC_FLOW_POS_HOLD_CMD")
   {
     rc_cmd_type_ = SN_RC_OPTIC_FLOW_POS_HOLD_CMD;
-    ROS_INFO("cmd_vel SNAV cmd type: SN_RC_OPTIC_FLOW_POS_HOLD_CMD");
+    ROS_INFO("SNAV cmd type: SN_RC_OPTIC_FLOW_POS_HOLD_CMD");
   }
   else if(rc_cmd_type_string == "SN_RC_VIO_POS_HOLD_CMD")
   {
     rc_cmd_type_ = SN_RC_VIO_POS_HOLD_CMD;
-    ROS_INFO("cmd_vel SNAV cmd type: SN_RC_VIO_POS_HOLD_CMD");
+    ROS_INFO("SNAV cmd type: SN_RC_VIO_POS_HOLD_CMD");
   }
   else if(rc_cmd_type_string == "SN_RC_ALT_HOLD_LOW_ANGLE_CMD")
   {
     rc_cmd_type_ = SN_RC_ALT_HOLD_LOW_ANGLE_CMD;
-    ROS_INFO("cmd_vel SNAV cmd type: SN_RC_ALT_HOLD_LOW_ANGLE_CMD");
+    ROS_INFO("SNAV cmd type: SN_RC_ALT_HOLD_LOW_ANGLE_CMD");
   }
   else if(rc_cmd_type_string == "SN_RC_POS_HOLD_CMD")
   {
     rc_cmd_type_ = SN_RC_POS_HOLD_CMD;
-    ROS_INFO("cmd_vel SNAV cmd type: SN_RC_POS_HOLD_CMD");
+    ROS_INFO("SNAV cmd type: SN_RC_POS_HOLD_CMD");
   }
   else
   {
     // Default is position hold mode command
-    ROS_INFO("Unrecognized sn_rc_cmd_type, using default cmd_vel SNAV cmd type: SN_RC_POS_HOLD_CMD");
+    ROS_INFO("Unrecognized sn_rc_cmd_type, using default SNAV cmd type: SN_RC_POS_HOLD_CMD");
     rc_cmd_type_ = SN_RC_POS_HOLD_CMD;
   }
 }
@@ -238,11 +238,11 @@ void SnavInterface::MappingTypeCallback(const std_msgs::String::ConstPtr& msg)
   SetRcMappingType(msg->data);
 }
 
-void SnavInterface::CmdVelCallback(const geometry_msgs::Twist::ConstPtr& msg)
+void SnavInterface::GenCmdCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
-  commanded_vel_ = *msg;
-  last_vel_command_time_ = ros::Time::now();
-  SendVelocityCommand();
+  generic_command_ = *msg;
+  last_rc_command_time_ = ros::Time::now();
+  SendGenCommand();
 }
 
 void SnavInterface::TrajCmdCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
@@ -261,15 +261,15 @@ void SnavInterface::StopPropsCallback(const std_msgs::Empty::ConstPtr& msg)
   sn_stop_props();
 }
 
-void SnavInterface::SendVelocityCommand()
+void SnavInterface::SendGenCommand()
 {
   float snav_rc_cmd[4];
 
   sn_apply_cmd_mapping(rc_cmd_type_, rc_cmd_mapping_,
-      commanded_vel_.linear.x,
-      commanded_vel_.linear.y,
-      commanded_vel_.linear.z,
-      commanded_vel_.angular.z,
+      generic_command_.linear.x,
+      generic_command_.linear.y,
+      generic_command_.linear.z,
+      generic_command_.angular.z,
       &snav_rc_cmd[0],
       &snav_rc_cmd[1],
       &snav_rc_cmd[2],

@@ -143,13 +143,13 @@ public:
   void MappingTypeCallback(const std_msgs::String::ConstPtr& msg);
 
   /**
-   * Callback function for velocity input
+   * Callback function for generic command input
    * @param msg
    *   geometry_msgs/Twist ros message.  linear x, y, z and angular z
    *   are used. Note if this callback is active, it also maps and sends commdands to
    *   snav via RPC call
    */
-  void CmdVelCallback(const geometry_msgs::Twist::ConstPtr& msg);
+  void GenCmdCallback(const geometry_msgs::Twist::ConstPtr& msg);
 
   /**
    * Callback function for trajectory input
@@ -198,7 +198,7 @@ private:
 
   ros::Subscriber cmd_type_subscriber_;
   ros::Subscriber mapping_type_subscriber_;
-  ros::Subscriber cmd_vel_subscriber_;
+  ros::Subscriber gen_cmd_subscriber_;
   ros::Subscriber traj_cmd_subscriber_;
   ros::Subscriber start_props_subscriber_;
   ros::Subscriber stop_props_subscriber_;
@@ -220,7 +220,7 @@ private:
   geometry_msgs::TransformStamped base_link_stab_transform_msg_;
   geometry_msgs::TransformStamped base_link_no_rot_transform_msg_;
 
-  geometry_msgs::Twist commanded_vel_;
+  geometry_msgs::Twist generic_command_;
 
   SnavCachedData *cached_data_;
 
@@ -228,7 +228,7 @@ private:
   bool valid_rotation_sim_gt_;
 
   ros::Time last_sn_update_;
-  ros::Time last_vel_command_time_;
+  ros::Time last_gen_command_time_;
   ros::Time last_traj_command_time_;
 
   int64_t dsp_offset_in_ns_;
