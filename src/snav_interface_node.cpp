@@ -29,7 +29,7 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * In addition Supplemental Terms apply.  See the SUPPLEMENTAL file.  
+ * In addition Supplemental Terms apply.  See the SUPPLEMENTAL file.
  ****************************************************************************/
 #include "snav_interface/snav_interface.hpp"
 
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
   private_nh.param("publish_sim_gt_pose", publish_sim_gt_pose, true);
 
   SnavInterface sn_iface(nh, private_nh);
-  
+
   ros::Timer timer = nh.createTimer(ros::Duration(1.0/slow_loop_freq),
                                     &SnavInterface::PublishLowFrequencyData, &sn_iface);
   ros::WallRate loop_ctrl(loop_freq);
@@ -71,10 +71,10 @@ int main(int argc, char *argv[])
     ros::spinOnce();
 
     sn_iface.UpdateSnavData();
-    sn_iface.UpdatePoseMessages();
 
     if (publish_est_data)
     {
+      sn_iface.UpdatePoseMessages();
       if (broadcast_des_tf)
         sn_iface.BroadcastDesiredTf();
       if (publish_des_pose)
@@ -93,6 +93,7 @@ int main(int argc, char *argv[])
 
     if (publish_sim_data)
     {
+      sn_iface.UpdateSimMessages();
       if (broadcast_sim_gt_tf)
         sn_iface.BroadcastSimGtTf();
       if (publish_sim_gt_pose)

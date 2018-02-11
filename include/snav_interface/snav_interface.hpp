@@ -66,9 +66,14 @@ public:
   SnavInterface(ros::NodeHandle nh, ros::NodeHandle pnh);
 
   /**
-   * Pack VIO, Optic Flow, and GPS data into ros messages and tfs
+   * pack vio, optic flow, and gps data into ros messages and tfs
    **/
   void UpdatePoseMessages();
+
+  /**
+   * pack simulated data into ros messages and tfs
+   **/
+  void UpdateSimMessages();
 
   /**
    * Update snav cached_data from snav RPC call
@@ -176,7 +181,6 @@ public:
 private:
   void GetRotationQuaternion(tf2::Quaternion &q);
   void UpdatePosVelMessages(tf2::Quaternion q);
-  void UpdateSimMessages();
 
   void PublishBatteryVoltage();
   void PublishOnGroundFlag();

@@ -46,7 +46,6 @@ SnavInterface::SnavInterface(ros::NodeHandle nh, ros::NodeHandle pnh) : nh_(nh),
   // Setup the publishers
   pose_est_publisher_ = nh_.advertise<geometry_msgs::PoseStamped>("pose", 10);
   pose_des_publisher_ = nh_.advertise<geometry_msgs::PoseStamped>("pose_des", 10);
-  pose_sim_gt_publisher_ = nh_.advertise<geometry_msgs::PoseStamped>("pose_sim_gt", 10);
   battery_voltage_publisher_ = nh_.advertise<std_msgs::Float32>("battery_voltage", 10);
   on_ground_publisher_ = nh_.advertise<std_msgs::Bool>("on_ground", 10);
   props_state_publisher_ = nh_.advertise<std_msgs::Bool>("props_state", 10);
@@ -289,7 +288,6 @@ void SnavInterface::UpdatePoseMessages()
   tf2::Quaternion q;
   GetRotationQuaternion(q);
   UpdatePosVelMessages(q);
-  UpdateSimMessages();
 }
 
 void SnavInterface::GetRotationQuaternion(tf2::Quaternion &q)
@@ -562,7 +560,7 @@ void SnavInterface::PublishDesiredPose(){
 
 void SnavInterface::PublishSimGtPose(){
   if (valid_rotation_sim_gt_)
-    pose_sim_gt_publisher_.publish(sim_gt_pose_msg_);
+    pose_est_publisher_.publish(sim_gt_pose_msg_);
   else
     ROS_ERROR("Tried to publish invalid sim ground truth pose");
 }
