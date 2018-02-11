@@ -137,6 +137,12 @@ public:
    */
   void CmdVelCallback(const geometry_msgs::Twist::ConstPtr& msg);
 
+  /**
+   * Callback function for trajectory input
+   * @param msg
+   *   std_msgs/Float32MultiArray ros message.  pos, vel, acc, yaw, yaw dot
+   *   are used.
+   */
   void TrajCmdCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
 
   /**
