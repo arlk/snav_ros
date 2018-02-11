@@ -46,6 +46,7 @@ SnavInterface::SnavInterface(ros::NodeHandle nh, ros::NodeHandle pnh) : nh_(nh),
   // Setup the publishers
   pose_est_publisher_ = nh_.advertise<geometry_msgs::PoseStamped>("pose", 10);
   pose_des_publisher_ = nh_.advertise<geometry_msgs::PoseStamped>("pose_des", 10);
+  vel_est_publisher_ = nh_.advertise<geometry_msgs::Twist>("vel", 10);
   battery_voltage_publisher_ = nh_.advertise<std_msgs::Float32>("battery_voltage", 10);
   on_ground_publisher_ = nh_.advertise<std_msgs::Bool>("on_ground", 10);
   props_state_publisher_ = nh_.advertise<std_msgs::Bool>("props_state", 10);
@@ -321,6 +322,15 @@ void SnavInterface::GetRotationQuaternion(tf2::Quaternion &q)
 
 void SnavInterface::UpdatePosVelMessages(tf2::Quaternion q)
 {
+  // TODO: Move this elsewhere
+  est_vel_msg_.linear.x = cached_data_->pos_vel.velocity_estimated[0];
+  est_vel_msg_.linear.y = cached_data_->pos_vel.velocity_estimated[1];
+  est_vel_msg_.linear.z = cached_data_->pos_vel.velocity_estimated[2];
+  est_vel_msg_.angular.x = cached_data_->imu_0_compensated.ang_vel[0];
+  est_vel_msg_.angular.y = cached_data_->imu_0_compensated.ang_vel[1];
+  est_vel_msg_.angular.z = cached_data_->imu_0_compensated.ang_vel[2];
+
+
   tf2::Transform est_tf(tf2::Transform(q, tf2::Vector3(
           cached_data_->pos_vel.position_estimated[0],
           cached_data_->pos_vel.position_estimated[1],
@@ -565,3 +575,9 @@ void SnavInterface::PublishSimGtPose(){
     ROS_ERROR("Tried to publish invalid sim ground truth pose");
 }
 
+void SnavInterface::PublishEstVel(){
+  if(valid_rotation_est_)
+    vel_est_publisher_.publish(est_vel_msg_);
+  else
+    ROS_ERROR("Tried to publish invalid Est Vel");
+}

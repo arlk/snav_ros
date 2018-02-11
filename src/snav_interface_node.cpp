@@ -87,6 +87,7 @@ int main(int argc, char *argv[])
       }
       if (publish_pose)
         sn_iface.PublishEstPose();
+        sn_iface.PublishEstVel();
       if (broadcast_gps_tf)
         sn_iface.BroadcastGpsEnuTf();
     }

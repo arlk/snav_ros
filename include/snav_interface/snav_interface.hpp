@@ -127,6 +127,11 @@ public:
   void PublishSimGtPose();
 
   /**
+   * Publish base_link velocity and angular rate in estimation_frame_ as geometry_msgs/Twist
+   */
+  void PublishEstVel();
+
+  /**
    * Publish battery voltage and on_groung flag as Float32 and Bool msgs
    * @param event
    *   Required argument for a function passed to a ros timer, This function
@@ -197,6 +202,7 @@ private:
   ros::Publisher pose_est_publisher_;
   ros::Publisher pose_des_publisher_;
   ros::Publisher pose_sim_gt_publisher_;
+  ros::Publisher vel_est_publisher_;
   ros::Publisher on_ground_publisher_;
   ros::Publisher props_state_publisher_;
   ros::Publisher clock_publisher_;
@@ -215,6 +221,7 @@ private:
 
   tf2_ros::TransformBroadcaster tf_pub_;
 
+  geometry_msgs::Twist est_vel_msg_;
   geometry_msgs::PoseStamped est_pose_msg_;
   geometry_msgs::PoseStamped des_pose_msg_;
   geometry_msgs::PoseStamped sim_gt_pose_msg_;
