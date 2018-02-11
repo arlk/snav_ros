@@ -51,6 +51,8 @@ SnavInterface::SnavInterface(ros::NodeHandle nh, ros::NodeHandle pnh) : nh_(nh),
   on_ground_publisher_ = nh_.advertise<std_msgs::Bool>("on_ground", 10);
   props_state_publisher_ = nh_.advertise<std_msgs::Bool>("props_state", 10);
 
+  cmd_type_subscriber_ = nh_.subscribe("cmd_type", 10, &SnavInterface::CmdTypeCallback, this);
+  mapping_type_subscriber_ = nh_.subscribe("mapping_type", 10, &SnavInterface::MappingTypeCallback, this);
   cmd_vel_subscriber_ = nh_.subscribe("cmd_vel", 10, &SnavInterface::CmdVelCallback, this);
   traj_cmd_subscriber_ = nh_.subscribe("traj_cmd", 10, &SnavInterface::TrajCmdCallback, this);
   start_props_subscriber_ = nh_.subscribe("start_props", 10, &SnavInterface::StartPropsCallback, this);
@@ -224,6 +226,16 @@ void SnavInterface::PublishLowFrequencyData(const ros::TimerEvent& event)
   {
     ROS_ERROR("Tried to publish low frequency data, but sn_update_data() has not been called in at least 1 second");
   }
+}
+
+void SnavInterface::CmdTypeCallback(const std_msgs::String::ConstPtr& msg)
+{
+  SetRcCommandType(msg->data);
+}
+
+void SnavInterface::MappingTypeCallback(const std_msgs::String::ConstPtr& msg)
+{
+  SetRcMappingType(msg->data);
 }
 
 void SnavInterface::CmdVelCallback(const geometry_msgs::Twist::ConstPtr& msg)

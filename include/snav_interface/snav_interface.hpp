@@ -129,6 +129,20 @@ public:
   void PublishLowFrequencyData(const ros::TimerEvent& event);
 
   /**
+   * Callback function to set SnRcCommandType
+   * @param msg
+   *   std_msgs/String message
+   */
+  void CmdTypeCallback(const std_msgs::String::ConstPtr& msg);
+
+  /**
+   * Callback function to set SnRcCommandOptions
+   * @param msg
+   *   std_msgs/String message
+   */
+  void MappingTypeCallback(const std_msgs::String::ConstPtr& msg);
+
+  /**
    * Callback function for velocity input
    * @param msg
    *   geometry_msgs/Twist ros message.  linear x, y, z and angular z
@@ -182,6 +196,8 @@ private:
   ros::Publisher props_state_publisher_;
   ros::Publisher clock_publisher_;
 
+  ros::Subscriber cmd_type_subscriber_;
+  ros::Subscriber mapping_type_subscriber_;
   ros::Subscriber cmd_vel_subscriber_;
   ros::Subscriber traj_cmd_subscriber_;
   ros::Subscriber start_props_subscriber_;
