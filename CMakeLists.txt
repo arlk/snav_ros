@@ -29,7 +29,7 @@
 #  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #  * POSSIBILITY OF SUCH DAMAGE.
 #  *
-#  * In addition Supplemental Terms apply.  See the SUPPLEMENTAL file. 
+#  * In addition Supplemental Terms apply.  See the SUPPLEMENTAL file.
 #  ****************************************************************************/
 
 cmake_minimum_required(VERSION 2.8.3)
@@ -82,7 +82,7 @@ add_library(snav_interface
   src/snav_interface.cpp)
 
 ## Declare a C++ executable
-add_executable(snav_interface_node 
+add_executable(snav_interface_node
   src/snav_interface_node.cpp)
 
 ## Specify libraries to link a library or executable target against
