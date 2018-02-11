@@ -240,7 +240,7 @@ void SnavInterface::MappingTypeCallback(const std_msgs::String::ConstPtr& msg)
 void SnavInterface::GenCmdCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
   generic_command_ = *msg;
-  last_rc_command_time_ = ros::Time::now();
+  last_gen_command_time_ = ros::Time::now();
   SendGenCommand();
 }
 

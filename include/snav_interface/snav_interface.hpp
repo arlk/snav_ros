@@ -50,6 +50,7 @@
 #include <std_msgs/Bool.h>
 #include <rosgraph_msgs/Clock.h>
 #include <std_msgs/Empty.h>
+#include <std_msgs/String.h>
 
 #include <snav/snapdragon_navigator.h>
 
@@ -186,7 +187,7 @@ private:
   void PublishOnGroundFlag();
   void PublishPropsStateFlag();
 
-  void SendVelocityCommand();
+  void SendGenCommand();
   void GetDSPTimeOffset();
 
   void SetRcCommandType(std::string rc_cmd_type_string);
